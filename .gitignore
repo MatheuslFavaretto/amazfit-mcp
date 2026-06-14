@@ -1,0 +1,13 @@
+# Ambiente
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.DS_Store
+
+# Dados pessoais — NUNCA versionar (planilha real e recuperação do relógio)
+data/*.xlsx
+data/recovery/
+
+# A fixture sintética (tests/fixtures/sample.xlsx) É versionada de propósito.
