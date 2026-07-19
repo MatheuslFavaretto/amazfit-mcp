@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "amazfit-mcp"
-version = "0.1.0"
+version = "0.2.0"
 description = "MCP server that turns Claude into a strength & running training analyst — spreadsheet load + Amazfit recovery."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8"]
+dev = ["pytest>=8", "ruff>=0.4", "mypy>=1.10"]
 
 [project.scripts]
 amazfit-mcp = "amazfit_mcp.server:main"
@@ -24,3 +24,19 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/test_hae_csv.py" = ["E501"]  # literal CSV fixtures: headers cannot wrap
+
+[tool.mypy]
+python_version = "3.10"
+files = ["src"]
+ignore_missing_imports = true
+check_untyped_defs = true

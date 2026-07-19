@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import datetime as dt
 
-from .models import RecoveryDay, Week
+from .models import RecoveryDay, Session, Week
 
 
 def weekly_load(weeks: list[Week]) -> list[dict]:
@@ -46,7 +46,8 @@ def _acwr_zone(ratio: float | None) -> str:
 
 
 def acwr_series(weeks: list[Week], window: int = 4) -> list[dict]:
-    """ACWR per week. Chronic = rolling mean of A.U. over the last ``window`` weeks (incl. current)."""
+    """ACWR per week. Chronic = rolling mean of A.U. over the last ``window``
+    weeks (incl. current)."""
     load = weekly_load(weeks)
     ua = [r["carga_ua"] for r in load]
     out = []
@@ -57,7 +58,8 @@ def acwr_series(weeks: list[Week], window: int = 4) -> list[dict]:
         # a week without load has no ACWR -> avoids a false "detraining" on empty weeks
         ratio = round(acute / chronic, 2) if (acute > 0 and chronic > 0) else None
         out.append(
-            {**row, "chronic_avg_ua": round(chronic, 1), "acwr": ratio, "acwr_zone": _acwr_zone(ratio)}
+            {**row, "chronic_avg_ua": round(chronic, 1), "acwr": ratio,
+             "acwr_zone": _acwr_zone(ratio)}
         )
     return out
 
@@ -89,7 +91,7 @@ def compare_load_recovery(
     (consecutive week). Days with recovery only (no training) are included too, with
     ``trained: false`` — useful to see the body's response the day after a heavy session.
     """
-    sessions_by_date: dict[str, tuple[int, object]] = {}
+    sessions_by_date: dict[str, tuple[int, Session]] = {}
     for w in weeks:
         anchor = _week_anchor(w)
         for s in w.sessions:

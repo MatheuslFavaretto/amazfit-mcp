@@ -270,7 +270,9 @@ def get_readiness(date: str | None = None) -> dict:
     most recent day with recovery data.
     """
     recovery = rec.load_recovery()
-    day = rec._parse_day(date) if date else (max(recovery) if recovery else dt.date.today().isoformat())
+    day = (rec._parse_day(date) or date) if date else (
+        max(recovery) if recovery else dt.date.today().isoformat()
+    )
     weeks = sp.load_weeks()
     ff = {r["date"]: r for r in mx.fitness_fatigue(mx.daily_load_series(weeks, wk.load_workouts()))}
     session = obs.sessions_by_date(weeks).get(day)
@@ -290,7 +292,7 @@ def daily_note(date: str) -> str:
     readiness) into a note with YAML frontmatter. Use ``export_obsidian`` to write
     into the vault.
     """
-    d = rec._parse_day(date)
+    d = rec._parse_day(date) or date
     p = _daily_payloads(d, d).get(d)
     if not p:
         return f"# {d}\n\nNo data for this day."

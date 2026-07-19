@@ -1,13 +1,16 @@
 # amazfit-mcp
 
+[![CI](https://github.com/MatheuslFavaretto/amazfit-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/MatheuslFavaretto/amazfit-mcp/actions/workflows/ci.yml)
+
 MCP server that turns Claude into your personal training analyst — crossing your
 **training spreadsheet** (strength) and **Amazfit watch** (running + recovery via
 Apple Health). No frontend, no hosting: just data exposed as tools; Claude does
 the analysis.
 
-**15 tools:** weeks, sessions and exercise progression from the spreadsheet · runs
+**16 tools:** weeks, sessions and exercise progression from the spreadsheet · runs
 with pace/HR/TRIMP · resting HR, HRV and sleep · ACWR and daily CTL/ATL/TSB (form)
-· a transparent 0–100 readiness score · daily notes exported to Obsidian.
+· a transparent 0–100 readiness score · daily notes exported to Obsidian · a
+self-contained HTML health report.
 
 ## Setup
 
@@ -29,6 +32,13 @@ HR, resting HR, Sleep, HRV. Then install **Health Auto Export**, create a daily 
 automation (those metrics + Workouts) into an iCloud folder — the MCP reads it from
 there. Validate by asking Claude for `recovery_status`.
 
+**Already have a CSV dump?** If you exported everything from Health Auto Export as
+CSV instead of the JSON automation, backfill the store with:
+
+```bash
+python -m amazfit_mcp.hae_csv ~/Downloads/HealthAutoExport_<date>
+```
+
 ## Use
 
 Just ask Claude:
@@ -40,7 +50,9 @@ Just ask Claude:
 ## Development
 
 ```bash
-.venv/bin/python -m pytest        # 84 tests
+.venv/bin/pip install -e .[dev]
+.venv/bin/python -m pytest        # 94 tests
+.venv/bin/ruff check . && .venv/bin/mypy   # lint + types (same gate as CI)
 ```
 
 Architecture, spreadsheet layout and design decisions: [CONTEXT.md](CONTEXT.md).

@@ -122,7 +122,8 @@ def load_recovery(directory: str | Path | None = None) -> dict[str, RecoveryDay]
 
 
 def get_recovery(date: str, directory: str | Path | None = None) -> RecoveryDay | None:
-    return load_recovery(directory).get(_parse_day(date))
+    day = _parse_day(date)
+    return load_recovery(directory).get(day) if day else None
 
 
 def get_recovery_range(

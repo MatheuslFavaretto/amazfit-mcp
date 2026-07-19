@@ -319,8 +319,12 @@ def build_export(items: list[dict]) -> tuple[dict, dict]:
             continue
         day = str(day)[:10]
         summary = _decode_summary(item.get("summary"))
-        slp = summary.get("slp") if isinstance(summary.get("slp"), dict) else {}
-        stp = summary.get("stp") if isinstance(summary.get("stp"), dict) else {}
+        slp = summary.get("slp")
+        if not isinstance(slp, dict):
+            slp = {}
+        stp = summary.get("stp")
+        if not isinstance(stp, dict):
+            stp = {}
         produced = False
 
         dp, lt = _num(slp.get("dp")), _num(slp.get("lt"))

@@ -93,6 +93,7 @@ def test_trend_z_score_na_mao():
         for d, v in zip(
             ["2024-04-01", "2024-04-02", "2024-04-03", "2024-04-04", "2024-04-05"],
             [50.0, 52.0, 48.0, 50.0, 50.0],
+            strict=True,
         )
     }
     rec["2024-04-06"] = _rec("2024-04-06", rhr=55.0)
@@ -126,7 +127,10 @@ def _recovery_semana():
     days = ["2024-05-01", "2024-05-02", "2024-05-03", "2024-05-04", "2024-05-05"]
     hrvs = [60.0, 62.0, 58.0, 60.0, 60.0]
     rhrs = [50.0, 52.0, 48.0, 50.0, 50.0]
-    rec = {d: _rec(d, rhr=r, hrv=h, sleep_h=7.0) for d, r, h in zip(days, rhrs, hrvs)}
+    rec = {
+        d: _rec(d, rhr=r, hrv=h, sleep_h=7.0)
+        for d, r, h in zip(days, rhrs, hrvs, strict=True)
+    }
     rec["2024-05-06"] = _rec("2024-05-06", rhr=52.0, hrv=62.0, sleep_h=6.0)
     return rec
 

@@ -36,7 +36,10 @@ def test_acwr(weeks):
 
 
 def test_join_carga_recuperacao(weeks, recovery):
-    rows = {r["date"]: r for r in an.compare_load_recovery(weeks, recovery, "2024-11-04", "2024-11-16")}
+    rows = {
+        r["date"]: r
+        for r in an.compare_load_recovery(weeks, recovery, "2024-11-04", "2024-11-16")
+    }
     assert set(rows) == {"2024-11-04", "2024-11-05", "2024-11-09", "2024-11-10", "2024-11-16"}
     # sábado: treino + recuperação juntos
     assert rows["2024-11-09"]["trained"] is True
@@ -82,7 +85,10 @@ def test_compare_usa_data_inferida(recovery):
         [Exercise("Agacho", [SetEntry(1, 10, 80, 2, 800.0)], 800.0)],
         8.0, 60.0, 480.0, 800.0, {}, None, True, True,
     )
-    rows = {r["date"]: r for r in an.compare_load_recovery([Week(1, "SEM 1", [seg, sab])], recovery)}
+    rows = {
+        r["date"]: r
+        for r in an.compare_load_recovery([Week(1, "SEM 1", [seg, sab])], recovery)
+    }
     assert rows["2024-11-09"]["trained"] is True
     assert rows["2024-11-09"]["carga_ua"] == 480.0
     assert rows["2024-11-09"]["resting_hr"] == 56.0

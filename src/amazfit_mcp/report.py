@@ -41,15 +41,16 @@ background:var(--surface);color:var(--ink);margin:0;padding:2.5rem 1.25rem 3rem;
 header{display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
 .name{font-size:1.35rem;font-weight:600;display:flex;align-items:baseline;gap:.45rem}
 .name .tag{font-family:ui-monospace,Menlo,monospace;font-size:.7rem;font-weight:600;
-color:var(--accent);background:var(--grid);border-radius:99px;padding:.15rem .55rem;letter-spacing:.06em}
+color:var(--accent);background:var(--grid);border-radius:99px;
+padding:.15rem .55rem;letter-spacing:.06em}
 .sub{font-size:.82rem;color:var(--ink-2)}
 h2{font-size:.8rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);
 font-weight:600;margin:0 0 .75rem}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem}
 .tile{background:var(--card);border:1px solid var(--line);border-radius:12px;
 padding:.95rem 1.05rem;display:flex;flex-direction:column;gap:.2rem}
-.tile .label{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;
-color:var(--muted);font-weight:600}
+.tile .label{font-size:.72rem;text-transform:uppercase;
+letter-spacing:.09em;color:var(--muted);font-weight:600}
 .tile .value{font-size:1.6rem;font-weight:600;line-height:1.15}
 .tile .value small{font-size:.85rem;font-weight:500;color:var(--ink-2)}
 .tile .foot{font-size:.78rem;color:var(--ink-2)}
@@ -62,16 +63,19 @@ color:var(--muted);font-weight:600}
 .tscroll{overflow-x:auto}
 table{border-collapse:collapse;width:100%;font-size:.88rem}
 th{font-size:.7rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
-font-weight:600;text-align:left;padding:.45rem .7rem .45rem 0;border-bottom:1px solid var(--line);white-space:nowrap}
+font-weight:600;text-align:left;padding:.45rem .7rem .45rem 0;
+border-bottom:1px solid var(--line);white-space:nowrap}
 td{padding:.5rem .7rem .5rem 0;border-bottom:1px solid var(--grid);white-space:nowrap}
 tr:last-child td{border-bottom:none}
 td.num{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
-footer{font-size:.78rem;color:var(--muted);border-top:1px solid var(--line);padding-top:1rem;line-height:1.6}
+footer{font-size:.78rem;color:var(--muted);border-top:1px solid var(--line);
+padding-top:1rem;line-height:1.6}
 """
 
 _LOGO = """<svg width="46" height="46" viewBox="0 0 52 52" role="img" aria-label="amazfit-mcp">
 <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
-<stop offset="0" stop-color="#D9503C"/><stop offset="1" stop-color="#A72E1F"/></linearGradient></defs>
+<stop offset="0" stop-color="#D9503C"/><stop offset="1" stop-color="#A72E1F"/>
+</linearGradient></defs>
 <rect x="1" y="1" width="50" height="50" rx="13" fill="url(#lg)"/>
 <polyline points="7,30 16,30 20,22 25,38 30,13 34,30 45,30" fill="none" stroke="#FFF6F2"
 stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
@@ -141,7 +145,8 @@ def form_chart_svg(series: list[dict]) -> str:
                 f'font-weight="600" fill="{color}">{label.split(" ")[0]} {_fmt(last)}</text>'
             )
     parts.append(
-        f'<text x="{_PAD_L}" y="{_H - 8}" font-size="10.5" fill="var(--muted)">{rows[0]["date"]}</text>'
+        f'<text x="{_PAD_L}" y="{_H - 8}" font-size="10.5" '
+        f'fill="var(--muted)">{rows[0]["date"]}</text>'
         f'<text x="{_W - _PAD_R}" y="{_H - 8}" text-anchor="end" font-size="10.5" '
         f'fill="var(--muted)">{rows[-1]["date"]}</text></svg>'
     )
@@ -238,7 +243,8 @@ def render_health_report(
             for _, label, color in _SERIES
         )
         chart_html = (
-            f'<section class="card"><h2>Fitness / fatigue / form · last {len(form_series)} days</h2>'
+            '<section class="card">'
+            f"<h2>Fitness / fatigue / form · last {len(form_series)} days</h2>"
             f'<div class="chart">{chart}</div><div class="legend">{legend}</div>'
             '<p class="note">CTL = 42-day fitness · ATL = 7-day acute fatigue · '
             "TSB = form (negative: accumulated fatigue, positive: fresh).</p></section>"

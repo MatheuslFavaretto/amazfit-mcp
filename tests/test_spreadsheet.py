@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from amazfit_mcp import spreadsheet as sp
 from amazfit_mcp import server
+from amazfit_mcp import spreadsheet as sp
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "sample.xlsx"
 

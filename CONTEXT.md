@@ -42,7 +42,12 @@ First MCP project; serves as tool + learning + portfolio piece.
   `AMAZFIT_MCP_OBSIDIAN_DIR`), `zepp_cloud.py` (experimental CLI, stdlib-only, writes **in
   the Health Auto Export format** so `recovery.py` needs zero changes; preferred auth via
   `ZEPP_APP_TOKEN`+`ZEPP_USER_ID`, password login gets 429s).
-- **15 tools, 84 green tests** against synthetic fixtures (spreadsheet + recovery + workouts,
+- **Phase 5 (reports + hardening) — shipped.** `report.py` (self-contained HTML health
+  report — static SVG CTL/ATL/TSB chart, no external assets — via the
+  `export_health_report` tool, `AMAZFIT_MCP_REPORT_DIR`), `hae_csv.py` (extractor for the
+  Health Auto Export **CSV dump** with PT/EN localized headers, writing store-shaped JSON —
+  zero reader changes), CI (ruff + mypy + pytest on 3.10/3.12).
+- **16 tools, 94 green tests** against synthetic fixtures (spreadsheet + recovery + workouts,
   dates aligned in Nov/2024).
 - **Phase 0 (enable the iPhone sync) — pending (manual iPhone configuration).** The only step
   missing for real data. Include **Workouts** in the Health Auto Export automation.
