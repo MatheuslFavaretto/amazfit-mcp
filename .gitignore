@@ -10,6 +10,7 @@ __pycache__/
 data/*.xlsx
 data/recovery/
 data/obsidian/
+data/reports/
 data/zepp_auth.json
 
 # A fixture sintética (tests/fixtures/sample.xlsx) É versionada de propósito.

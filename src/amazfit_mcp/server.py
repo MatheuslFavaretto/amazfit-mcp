@@ -17,6 +17,7 @@ from . import config
 from . import metrics as mx
 from . import obsidian as obs
 from . import recovery as rec
+from . import report as rp
 from . import spreadsheet as sp
 from . import workouts as wk
 
@@ -309,6 +310,35 @@ def export_obsidian(start: str, end: str) -> dict:
     """
     paths = obs.export_notes(_daily_payloads(rec._parse_day(start), rec._parse_day(end)))
     return {"written": len(paths), "files": paths, "dir": str(config.obsidian_dir())}
+
+
+@mcp.tool()
+def export_health_report(days: int = 30) -> dict:
+    """Generate a self-contained HTML health report and write it to disk.
+
+    One page with the latest recovery + readiness tiles, a CTL/ATL/TSB time-series
+    chart over the last ``days`` days and the recent workouts table. Static SVG,
+    no external assets — open in any browser or share as-is. Writes
+    ``report-<date>.html`` into ``AMAZFIT_MCP_REPORT_DIR`` (default ``data/reports``)
+    and returns the path.
+    """
+    weeks = sp.load_weeks()
+    recovery = rec.load_recovery()
+    all_workouts = wk.load_workouts()
+    ff = mx.fitness_fatigue(mx.daily_load_series(weeks, all_workouts))
+    form_series = ff[-days:] if days > 0 else ff
+    latest_day = max(recovery) if recovery else None
+    today = form_series[-1]["date"] if form_series else dt.date.today().isoformat()
+    readiness = get_readiness(latest_day) if latest_day else {}
+    html = rp.render_health_report(
+        form_series,
+        latest_recovery=recovery.get(latest_day) if latest_day else None,
+        readiness=readiness,
+        workouts=all_workouts[-10:],
+        generated=today,
+    )
+    path = rp.export_report(html, date=today)
+    return {"path": path, "days": len(form_series), "workouts": min(len(all_workouts), 10)}
 
 
 def main() -> None:

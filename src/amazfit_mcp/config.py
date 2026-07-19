@@ -15,10 +15,12 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_XLSX = PROJECT_ROOT / "data" / "planilha.xlsx"
 DEFAULT_RECOVERY_DIR = PROJECT_ROOT / "data" / "recovery"
 DEFAULT_OBSIDIAN_DIR = PROJECT_ROOT / "data" / "obsidian"
+DEFAULT_REPORT_DIR = PROJECT_ROOT / "data" / "reports"
 
 ENV_VAR = "AMAZFIT_MCP_XLSX"
 RECOVERY_ENV = "AMAZFIT_MCP_RECOVERY_DIR"
 OBSIDIAN_ENV = "AMAZFIT_MCP_OBSIDIAN_DIR"
+REPORT_ENV = "AMAZFIT_MCP_REPORT_DIR"
 HR_MAX_ENV = "AMAZFIT_MCP_HR_MAX"
 HR_REST_ENV = "AMAZFIT_MCP_HR_REST"
 
@@ -48,6 +50,15 @@ def obsidian_dir() -> Path:
     """
     env = os.environ.get(OBSIDIAN_ENV)
     return Path(env).expanduser() if env else DEFAULT_OBSIDIAN_DIR
+
+
+def report_dir() -> Path:
+    """Folder where HTML health reports are written.
+
+    Env ``AMAZFIT_MCP_REPORT_DIR`` or default ``data/reports`` (gitignored).
+    """
+    env = os.environ.get(REPORT_ENV)
+    return Path(env).expanduser() if env else DEFAULT_REPORT_DIR
 
 
 def hr_bounds() -> tuple[float, float]:
