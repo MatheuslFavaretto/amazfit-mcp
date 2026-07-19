@@ -9,5 +9,7 @@ __pycache__/
 # Dados pessoais — NUNCA versionar (planilha real e recuperação do relógio)
 data/*.xlsx
 data/recovery/
+data/obsidian/
+data/zepp_auth.json
 
 # A fixture sintética (tests/fixtures/sample.xlsx) É versionada de propósito.

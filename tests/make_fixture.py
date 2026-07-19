@@ -6,7 +6,7 @@ todas as semanas e escreve algumas sessões com números conhecidos, usados nos 
 Uso:
     python tests/make_fixture.py [caminho_do_template.xlsx]
 
-Sem argumento, usa ``config.xlsx_path()`` (env AMAZFITOPS_XLSX ou data/planilha.xlsx).
+Sem argumento, usa ``config.xlsx_path()`` (env AMAZFIT_MCP_XLSX ou data/planilha.xlsx).
 Como a fixture só precisa da ESTRUTURA do template (não de dados pessoais), o arquivo
 gerado é seguro para versionar.
 """
@@ -22,8 +22,8 @@ from openpyxl.utils import get_column_letter
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from amazfitops import cellmap as cm  # noqa: E402
-from amazfitops import config  # noqa: E402
+from amazfit_mcp import cellmap as cm  # noqa: E402
+from amazfit_mcp import config  # noqa: E402
 
 OUT = Path(__file__).resolve().parent / "fixtures" / "sample.xlsx"
 

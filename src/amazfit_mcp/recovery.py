@@ -1,15 +1,16 @@
-"""Leitura do store de recuperação (Amazfit GTR 4 via Apple Health).
+"""Recovery store reader (Amazfit GTR 4 via Apple Health).
 
-Fonte (Fase 2): o app iOS **Health Auto Export** escreve JSON do Apple Health numa pasta
-(iCloud Drive ou local). Este módulo só LÊ esses arquivos e normaliza por data — a extração
-fica fora do MCP (desacoplado, estilo SRE: a ingestão é o app; aqui é só a query).
+Source (Phase 2): the iOS app **Health Auto Export** writes Apple Health JSON into a
+folder (iCloud Drive or local). This module only READS those files and normalizes
+them by date — extraction stays outside the MCP (decoupled, SRE-style: ingestion is
+the app's job; here it is query only).
 
-Formato do Health Auto Export (verificado na wiki oficial):
+Health Auto Export format (verified against the official wiki):
     { "data": { "metrics": [ {"name","units","data":[...]} , ... ] } }
-  - métricas de quantidade (resting_heart_rate, heart_rate_variability, respiratory_rate):
-      cada ponto = {"qty": <num>, "date": "yyyy-MM-dd HH:mm:ss Z"}
-  - sleep_analysis: cada ponto = {"date":"yyyy-MM-dd","asleep","deep","rem","core","inBed",
-      "totalSleep","sleepStart","sleepEnd"}  (durações em horas)
+  - quantity metrics (resting_heart_rate, heart_rate_variability, respiratory_rate):
+      each point = {"qty": <num>, "date": "yyyy-MM-dd HH:mm:ss Z"}
+  - sleep_analysis: each point = {"date":"yyyy-MM-dd","asleep","deep","rem","core","inBed",
+      "totalSleep","sleepStart","sleepEnd"}  (durations in hours)
 """
 
 from __future__ import annotations
@@ -22,11 +23,13 @@ from pathlib import Path
 from . import config
 from .models import RecoveryDay
 
-# nome no Health Auto Export -> campo no RecoveryDay
+# Health Auto Export name -> (RecoveryDay field, value keys to try in order)
+# heart_rate (day's average HR) comes aggregated as Min/Avg/Max; the rest come as qty.
 QUANTITY_METRICS = {
-    "resting_heart_rate": "resting_hr",
-    "heart_rate_variability": "hrv_sdnn",
-    "respiratory_rate": "respiratory_rate",
+    "resting_heart_rate": ("resting_hr", ("qty",)),
+    "heart_rate": ("hr_avg", ("Avg", "avg", "qty")),
+    "heart_rate_variability": ("hrv_sdnn", ("qty",)),
+    "respiratory_rate": ("respiratory_rate", ("qty",)),
 }
 SLEEP_METRIC = "sleep_analysis"
 
@@ -34,7 +37,7 @@ _DATE_FORMATS = ("%Y-%m-%d %H:%M:%S %z", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d")
 
 
 def _parse_day(value) -> str | None:
-    """Qualquer formato de data do export -> dia ISO 'YYYY-MM-DD'."""
+    """Any export date format -> ISO day 'YYYY-MM-DD'."""
     if not value:
         return None
     s = str(value).strip()
@@ -63,7 +66,7 @@ def _iter_metrics(directory: Path):
 
 
 def load_recovery(directory: str | Path | None = None) -> dict[str, RecoveryDay]:
-    """Lê todos os JSON da pasta e devolve {dia ISO: RecoveryDay}."""
+    """Read every JSON in the folder and return {ISO day: RecoveryDay}."""
     directory = Path(directory) if directory else config.recovery_dir()
     if not directory.exists():
         return {}
@@ -75,12 +78,16 @@ def load_recovery(directory: str | Path | None = None) -> dict[str, RecoveryDay]
         name = metric.get("name")
         points = metric.get("data") or []
         if name in QUANTITY_METRICS:
-            field = QUANTITY_METRICS[name]
+            field, value_keys = QUANTITY_METRICS[name]
             for pt in points:
                 day = _parse_day(pt.get("date"))
-                qty = _num(pt.get("qty"))
-                if day and qty is not None:
-                    quantities[day][field].append(qty)
+                val = None
+                for key in value_keys:
+                    val = _num(pt.get(key))
+                    if val is not None:
+                        break
+                if day and val is not None:
+                    quantities[day][field].append(val)
         elif name == SLEEP_METRIC:
             for pt in points:
                 day = _parse_day(pt.get("date"))
@@ -106,6 +113,7 @@ def load_recovery(directory: str | Path | None = None) -> dict[str, RecoveryDay]
         out[day] = RecoveryDay(
             date=day,
             resting_hr=avg(day, "resting_hr"),
+            hr_avg=avg(day, "hr_avg"),
             hrv_sdnn=avg(day, "hrv_sdnn"),
             respiratory_rate=avg(day, "respiratory_rate"),
             sleep=sleep_by_day.get(day),

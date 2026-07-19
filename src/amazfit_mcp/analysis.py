@@ -1,10 +1,11 @@
-"""Fase 3 — análise cruzada (funções puras sobre os dataclasses).
+"""Phase 3 — cross analysis (pure functions over the dataclasses).
 
-Duas peças objetivas que valem código (o resto da análise o Claude faz em cima das tools):
-- **ACWR**: razão entre carga aguda (semana atual) e crônica (média móvel ~4 semanas) em U.A.
-  Indicador clássico de risco de overtraining (Gabbett). Funciona só com a planilha.
-- **Join carga × recuperação por data**: casa a sessão de treino (se a célula DATA estiver
-  preenchida) com a recuperação do relógio daquele dia. É o cruzamento "onde mora o valor".
+Two objective pieces worth writing code for (Claude does the rest of the analysis
+on top of the tools):
+- **ACWR**: acute (current week) to chronic (~4-week rolling mean) load ratio in A.U.
+  Classic overtraining-risk indicator (Gabbett). Works with the spreadsheet alone.
+- **Load × recovery join by date**: matches a training session (when the DATE cell is
+  filled) with that day's watch recovery. This crossing is where the value lives.
 """
 
 from __future__ import annotations
@@ -15,7 +16,7 @@ from .models import RecoveryDay, Week
 
 
 def weekly_load(weeks: list[Week]) -> list[dict]:
-    """Carga por semana: U.A. total (PSE×tempo), VTT total e nº de sessões registradas."""
+    """Load per week: total A.U. (RPE×time), total VTT and number of logged sessions."""
     rows = []
     for w in weeks:
         ua = sum(s.carga_ua for s in w.sessions if s.carga_ua is not None)
@@ -34,18 +35,18 @@ def weekly_load(weeks: list[Week]) -> list[dict]:
 
 def _acwr_zone(ratio: float | None) -> str:
     if ratio is None:
-        return "sem dado"
+        return "no data"
     if ratio < 0.8:
-        return "baixa carga (destreino)"
+        return "low load (detraining)"
     if ratio <= 1.3:
-        return "faixa ótima"
+        return "optimal"
     if ratio <= 1.5:
-        return "atenção"
-    return "risco alto"
+        return "caution"
+    return "high risk"
 
 
 def acwr_series(weeks: list[Week], window: int = 4) -> list[dict]:
-    """ACWR por semana. Crônica = média móvel de U.A. nas últimas ``window`` semanas (inclui a atual)."""
+    """ACWR per week. Chronic = rolling mean of A.U. over the last ``window`` weeks (incl. current)."""
     load = weekly_load(weeks)
     ua = [r["carga_ua"] for r in load]
     out = []
@@ -53,7 +54,7 @@ def acwr_series(weeks: list[Week], window: int = 4) -> list[dict]:
         acute = row["carga_ua"]
         chronic_vals = ua[max(0, i - window + 1) : i + 1]
         chronic = sum(chronic_vals) / len(chronic_vals) if chronic_vals else 0.0
-        # semana sem carga não tem ACWR -> evita falso "destreino" nas semanas vazias
+        # a week without load has no ACWR -> avoids a false "detraining" on empty weeks
         ratio = round(acute / chronic, 2) if (acute > 0 and chronic > 0) else None
         out.append(
             {**row, "chronic_avg_ua": round(chronic, 1), "acwr": ratio, "acwr_zone": _acwr_zone(ratio)}
@@ -62,10 +63,10 @@ def acwr_series(weeks: list[Week], window: int = 4) -> list[dict]:
 
 
 def _week_anchor(week: Week) -> dt.date | None:
-    """Data do 'dia 0' (segunda) da semana, inferida de qualquer dia com DATA preenchida.
+    """Date of the week's "day 0" (Monday), inferred from any day with a filled DATE.
 
-    A semana é Segunda→Domingo consecutiva, então basta uma data: âncora = data − day_index.
-    Daí qualquer dia d tem data = âncora + d.
+    The week is a consecutive Monday→Sunday block, so one date is enough:
+    anchor = date − day_index. Then any day d has date = anchor + d.
     """
     for s in week.sessions:
         if s.date:
@@ -82,11 +83,11 @@ def compare_load_recovery(
     start: str | None = None,
     end: str | None = None,
 ) -> list[dict]:
-    """Junta treino e recuperação por DATA (ISO) — o cruzamento central do projeto.
+    """Joins training and recovery by ISO DATE — the project's central crossing.
 
-    Basta UMA data preenchida por semana na planilha: as outras são inferidas (semana
-    consecutiva). Dias só com recuperação (sem treino) também entram, com ``trained: false`` —
-    úteis pra ver a resposta do corpo no dia seguinte a uma sessão pesada.
+    One filled date per spreadsheet week is enough: the others are inferred
+    (consecutive week). Days with recovery only (no training) are included too, with
+    ``trained: false`` — useful to see the body's response the day after a heavy session.
     """
     sessions_by_date: dict[str, tuple[int, object]] = {}
     for w in weeks:
@@ -114,7 +115,7 @@ def compare_load_recovery(
                     "day": s.day,
                     "carga_ua": s.carga_ua,
                     "vtt": s.vtt_session,
-                    "readiness_subjetiva": s.readiness,
+                    "subjective_readiness": s.readiness,
                 }
             )
         r = recovery.get(d)

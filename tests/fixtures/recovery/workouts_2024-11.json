@@ -1,0 +1,57 @@
+{
+  "data": {
+    "workouts": [
+      {
+        "name": "Outdoor Run",
+        "start": "2024-11-04 07:00:00 +0000",
+        "end": "2024-11-04 07:30:00 +0000",
+        "duration": 1800,
+        "distance": { "qty": 5.2, "units": "km" },
+        "activeEnergyBurned": { "qty": 320, "units": "kcal" },
+        "avgHeartRate": { "qty": 148, "units": "bpm" },
+        "maxHeartRate": { "qty": 171, "units": "bpm" }
+      },
+      {
+        "workoutName": "Running",
+        "start": "2024-11-05 07:10:00 +0000",
+        "end": "2024-11-05 07:40:00 +0000",
+        "duration": 30,
+        "distance": { "qty": 5.0, "units": "km" },
+        "activeEnergy": { "qty": 305 },
+        "avgHeartRate": 125,
+        "maxHeartRate": 152
+      },
+      {
+        "name": "Outdoor Run",
+        "start": "2024-11-09 08:00:00 +0000",
+        "end": "2024-11-09 08:45:00 +0000",
+        "duration": 2700,
+        "distance": { "qty": 5.0, "units": "mi" },
+        "activeEnergy": { "qty": 510 },
+        "heartRateAvg": { "qty": 152, "units": "bpm" },
+        "heartRateMax": { "qty": 175, "units": "bpm" }
+      },
+      {
+        "name": "Outdoor Walk",
+        "start": "2024-11-10 09:00:00 +0000",
+        "end": "2024-11-10 10:00:00 +0000",
+        "duration": 3600,
+        "distance": { "qty": 4.0, "units": "km" },
+        "activeEnergyBurned": { "qty": 180, "units": "kcal" },
+        "avgHeartRate": { "qty": 95, "units": "bpm" }
+      },
+      {
+        "name": "Traditional Strength Training",
+        "start": "2024-11-16 09:00:00 +0000",
+        "end": "2024-11-16 09:55:00 +0000",
+        "duration": 3300,
+        "activeEnergyBurned": { "qty": 250, "units": "kcal" }
+      },
+      {
+        "name": "Indoor Run",
+        "start": "2024-11-16 18:00:00 +0000",
+        "end": "2024-11-16 18:20:00 +0000"
+      }
+    ]
+  }
+}

@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from amazfitops import recovery as rec
-from amazfitops import server
+from amazfit_mcp import recovery as rec
+from amazfit_mcp import server
 
 FIXDIR = Path(__file__).resolve().parent / "fixtures" / "recovery"
 
@@ -22,6 +22,7 @@ def test_parseia_os_dias(recs):
 def test_recuperacao_do_sabado(recs):
     r = recs["2024-11-09"]
     assert r.resting_hr == 56.0
+    assert r.hr_avg == 72.0          # heart_rate vem como Min/Avg/Max -> pegamos o Avg
     assert r.hrv_sdnn == 54.0
     assert r.respiratory_rate == 14.5
     assert r.sleep["asleep_h"] == 7.1 and r.sleep["deep_h"] == 1.2
@@ -50,7 +51,7 @@ def test_pasta_inexistente_nao_quebra():
 
 
 def test_tools_via_server(monkeypatch):
-    monkeypatch.setenv("AMAZFITOPS_RECOVERY_DIR", str(FIXDIR))
+    monkeypatch.setenv("AMAZFIT_MCP_RECOVERY_DIR", str(FIXDIR))
     out = server.get_recovery("2024-11-09")
     assert out["found"] is True and out["resting_hr"] == 56.0
     st = server.recovery_status()
@@ -60,6 +61,6 @@ def test_tools_via_server(monkeypatch):
 
 
 def test_get_recovery_ausente(monkeypatch, tmp_path):
-    monkeypatch.setenv("AMAZFITOPS_RECOVERY_DIR", str(tmp_path))
+    monkeypatch.setenv("AMAZFIT_MCP_RECOVERY_DIR", str(tmp_path))
     out = server.get_recovery("2024-01-01")
     assert out["found"] is False

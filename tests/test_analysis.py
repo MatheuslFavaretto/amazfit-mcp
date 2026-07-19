@@ -4,10 +4,10 @@ from pathlib import Path
 
 import pytest
 
-from amazfitops import analysis as an
-from amazfitops import recovery as rec
-from amazfitops import spreadsheet as sp
-from amazfitops.models import Exercise, Session, SetEntry, Week
+from amazfit_mcp import analysis as an
+from amazfit_mcp import recovery as rec
+from amazfit_mcp import spreadsheet as sp
+from amazfit_mcp.models import Exercise, Session, SetEntry, Week
 
 FX = Path(__file__).resolve().parent / "fixtures"
 
@@ -31,7 +31,7 @@ def test_weekly_load(weeks):
 def test_acwr(weeks):
     s = {r["week"]: r for r in an.acwr_series(weeks, window=4)}
     assert s[1]["acwr"] == 1.0                       # semana 1 sozinha -> aguda == crônica
-    assert s[1]["acwr_zone"] == "faixa ótima"
+    assert s[1]["acwr_zone"] == "optimal"
     assert s[2]["acwr"] == round(520 / 675, 2)        # 520 / média(830,520) = 0.77
 
 
@@ -48,9 +48,9 @@ def test_join_carga_recuperacao(weeks, recovery):
 
 
 def test_tools_via_server(monkeypatch):
-    monkeypatch.setenv("AMAZFITOPS_XLSX", str(FX / "sample.xlsx"))
-    monkeypatch.setenv("AMAZFITOPS_RECOVERY_DIR", str(FX / "recovery"))
-    from amazfitops import server
+    monkeypatch.setenv("AMAZFIT_MCP_XLSX", str(FX / "sample.xlsx"))
+    monkeypatch.setenv("AMAZFIT_MCP_RECOVERY_DIR", str(FX / "recovery"))
+    from amazfit_mcp import server
 
     rows = server.compare_load_recovery("2024-11-09", "2024-11-10")
     assert [r["date"] for r in rows] == ["2024-11-09", "2024-11-10"]
@@ -59,9 +59,9 @@ def test_tools_via_server(monkeypatch):
 
 
 def test_acwr_semana_sem_dado_e_none(weeks):
-    # semanas 3..12 da fixture não têm treino -> ACWR None / "sem dado", não "destreino"
+    # semanas 3..12 da fixture não têm treino -> ACWR None / "no data", não "destreino"
     s = {r["week"]: r for r in an.acwr_series(weeks, window=4)}
-    assert s[3]["acwr"] is None and s[3]["acwr_zone"] == "sem dado"
+    assert s[3]["acwr"] is None and s[3]["acwr_zone"] == "no data"
 
 
 def test_infere_ancora_da_semana():

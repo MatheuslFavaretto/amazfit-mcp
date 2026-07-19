@@ -1,138 +1,199 @@
-# AmazFitOps
+# amazfit-mcp
 
-> Mentalidade de **Ops/SRE** aplicada ao treino de força: monitorar, medir e cruzar
-> **carga de treino** com **recuperação**. Um servidor **MCP** em Python que transforma o
-> Claude num analista de treino pessoal.
+> An **Ops/SRE mindset** applied to training (codename *AmazFitOps*): monitor, measure and
+> cross **training load** with **recovery**. A Python **MCP server** that turns Claude into
+> a personal training analyst for strength and running.
 
-O Claude já é a camada de análise. O trabalho deste projeto é **expor os dados como tools** —
-sem frontend, sem hospedagem, sem UI para manter.
+**Open source (MIT).** If you own an Amazfit and want your AI to actually understand your
+training, this is for you — [contributions are welcome](#contributing).
 
-- **Carga de treino** vem de uma planilha de controle (`.xlsx`): VTT (volume = reps × peso) e
-  Carga em U.A. (PSE × tempo, *session-RPE* de Foster), por série / sessão / semana.
-- **Recuperação** vem de um **Amazfit GTR 4** (Fase 2 — ver [Roadmap](#roadmap)). A própria
-  planilha já traz recuperação **subjetiva** (sono / estresse / fadiga / dor) por sessão.
+Claude is already the analysis layer. This project's job is to **expose the data as tools** —
+no frontend, no hosting, no UI to maintain.
+
+- **Training load** comes from a load-control spreadsheet (`.xlsx`): VTT (volume = reps × weight)
+  and Load in A.U. (RPE × time, Foster's *session-RPE*), per set / session / week.
+- **Recovery** comes from an **Amazfit GTR 4** via Apple Health. The spreadsheet also carries
+  **subjective** recovery (sleep / stress / fatigue / soreness) per session.
+- **Running** comes from the watch's workouts (distance, pace, HR, TRIMP).
 
 ## Status
 
-**Fases 1, 2 e 3 entregues** — 9 tools, 35 testes verdes. Falta só você ativar o sync no iPhone
-(ver [Configurar o Amazfit](#configurar-o-amazfit-apple-health--fase-0)) pra entrar dado real do
-relógio; o código que lê e cruza já está pronto e testado.
+**Phases 1–4 shipped** — 15 tools, 84 green tests. Phase 4 ("the best of GitHub's fitness
+MCPs") brought running workouts with TRIMP, daily CTL/ATL/TSB, a readiness score, baseline
+trends, Obsidian export and an experimental Zepp cloud extractor. The only missing step is
+enabling the sync on the iPhone (see
+[Configure the Amazfit](#configure-the-amazfit-apple-health--phase-0)).
 
 ## Tools
 
-**Carga de treino (planilha):**
+**Training load (spreadsheet):**
 
-| Tool | O que faz |
+| Tool | What it does |
 |---|---|
-| `list_weeks()` | Lista as semanas com datas, sessões feitas/planejadas, VTT, U.A. e `has_data`. |
-| `get_week_summary(week)` | Resumo da semana + quebra por dia (VTT, U.A., prontidão, feito?). |
-| `get_session(week, day)` | Detalha um treino: séries (reps/peso/veloc/VTT), PSE, tempo, U.A., bem-estar. `day` aceita nome ("sábado") ou 1–7. |
-| `get_exercise_history(exercise, weeks?)` | Progressão de um exercício (peso máx., volume) entre semanas. Casa nome de forma flexível. |
+| `list_weeks()` | Lists weeks with dates, sessions done/planned, VTT, A.U. and `has_data`. |
+| `get_week_summary(week)` | Week summary + per-day breakdown (VTT, A.U., readiness, trained?). |
+| `get_session(week, day)` | Details one session: sets (reps/weight/speed/VTT), RPE, time, A.U., wellness. `day` takes a name ("sábado", "monday") or 1–7. |
+| `get_exercise_history(exercise, weeks?)` | Progression of one exercise (max weight, volume) across weeks. Flexible name matching. |
 
-**Recuperação (Amazfit GTR 4 via Apple Health):**
+**Recovery (Amazfit GTR 4 via Apple Health):**
 
-| Tool | O que faz |
+| Tool | What it does |
 |---|---|
-| `get_recovery(date)` | FC de repouso, HRV, freq. respiratória e sono (horas + fases) de um dia. |
-| `get_recovery_range(start, end)` | Série temporal de recuperação entre duas datas. |
-| `recovery_status()` | Diagnóstico: quantos dias há, intervalo, dado mais recente e a pasta lida. |
+| `get_recovery(date)` | Resting HR, **avg HR**, HRV, respiratory rate and sleep (hours + phases) for a day. |
+| `get_recovery_range(start, end)` | Recovery time series between two dates. |
+| `recovery_status()` | Diagnostics: how many days exist, range, latest data point and the folder read. |
 
-**Análise cruzada (Fase 3):**
+**Cross analysis (Phase 3):**
 
-| Tool | O que faz |
+| Tool | What it does |
 |---|---|
-| `get_training_load(window?)` | Carga por semana + **ACWR** (aguda/crônica), indicador de overtraining. |
-| `compare_load_recovery(start, end)` | Junta carga de treino e recuperação **por data** — o cruzamento central. |
+| `get_training_load(window?)` | Load per week + **ACWR** (acute/chronic), overtraining indicator. |
+| `compare_load_recovery(start, end)` | Joins training load and recovery **by date** — the central crossing. |
+
+**Running, form & Obsidian (Phase 4 — inspired by GitHub's best fitness MCPs):**
+
+| Tool | What it does |
+|---|---|
+| `get_workouts(start, end, kind?)` | Watch runs/activities: duration, distance, pace, HR and **TRIMP** (internal load). |
+| `get_fitness_fatigue(ctl?, atl?)` | Daily **CTL/ATL/TSB** (fitness/fatigue/form, Garmin-style) — spreadsheet + workout TRIMP. |
+| `get_trends(metric?, baseline?)` | HRV / resting HR / sleep trend against a 28-day baseline, with z-score. |
+| `get_readiness(date?)` | **Transparent** 0–100 readiness (breakdown: HRV, resting HR, sleep, TSB, subjective). |
+| `daily_note(date)` | Daily Markdown note (YAML frontmatter) — training + running + recovery + form. |
+| `export_obsidian(start, end)` | Writes the daily notes into the vault (`AMAZFIT_MCP_OBSIDIAN_DIR`), idempotent, Dataview-ready. |
+
+There is also an **experimental Zepp cloud extractor** (outside the MCP, SRE-style):
+`PYTHONPATH=src .venv/bin/python -m amazfit_mcp.zepp_cloud --days 14` — authenticates
+against the Zepp account (prefer `ZEPP_APP_TOKEN`+`ZEPP_USER_ID`; password login gets
+rate-limited) and writes JSON **in the Health Auto Export format** straight into the
+store, with zero reader changes. Unofficial endpoints: may break without notice — the
+Apple Health route remains the primary one.
 
 ## Setup
 
-Requer Python ≥ 3.10 (o `python3` do macOS é 3.9 — use o do Homebrew).
+Requires Python ≥ 3.10 (macOS's `python3` is 3.9 — use Homebrew's).
 
 ```bash
 python3.12 -m venv .venv
-.venv/bin/pip install -e .          # instala as dependências (mcp, openpyxl)
+.venv/bin/pip install -e .          # installs the dependencies (mcp, openpyxl)
 
-# aponte para sua planilha (default: data/planilha.xlsx, que é gitignored)
-export AMAZFITOPS_XLSX="$PWD/data/planilha.xlsx"
+# point to your spreadsheet (default: data/planilha.xlsx, gitignored)
+export AMAZFIT_MCP_XLSX="$PWD/data/planilha.xlsx"
 
-# subir o servidor (stdio)
-PYTHONPATH=src .venv/bin/python -m amazfitops
+# start the server (stdio)
+PYTHONPATH=src .venv/bin/python -m amazfit_mcp
 ```
 
-> O pacote vive em `src/`. Rodamos via `PYTHONPATH=src python -m amazfitops` em vez do
-> console script porque o `.pth` de editable do setuptools não é honrado de forma confiável
-> quando o projeto fica sob `~/Documents` (TCC) no macOS — `PYTHONPATH` é explícito e à prova
-> de bala.
+> The package lives in `src/`. We run via `PYTHONPATH=src python -m amazfit_mcp` instead of
+> the console script because setuptools' editable `.pth` is not reliably honored when the
+> project sits under `~/Documents` (TCC) on macOS — `PYTHONPATH` is explicit and bulletproof.
 
-## Registrar no Claude Code
+## Register in Claude Code
 
 ```bash
-claude mcp add amazfitops \
+claude mcp add amazfit-mcp \
   --env PYTHONPATH="$PWD/src" \
-  --env AMAZFITOPS_XLSX="$PWD/data/planilha.xlsx" \
-  --env AMAZFITOPS_RECOVERY_DIR="$PWD/data/recovery" \
-  -- "$PWD/.venv/bin/python" -m amazfitops
+  --env AMAZFIT_MCP_XLSX="$PWD/data/planilha.xlsx" \
+  --env AMAZFIT_MCP_RECOVERY_DIR="$PWD/data/recovery" \
+  --env AMAZFIT_MCP_OBSIDIAN_DIR="$HOME/Obsidian/Training/Daily" \
+  --env AMAZFIT_MCP_HR_MAX=190 --env AMAZFIT_MCP_HR_REST=60 \
+  -- "$PWD/.venv/bin/python" -m amazfit_mcp
 ```
 
-Depois, no Claude: *"como foi meu sábado da semana 1?"*, *"resumo da semana 1"*,
-*"estou progredindo no agachamento?"*.
+`AMAZFIT_MCP_HR_MAX`/`AMAZFIT_MCP_HR_REST` calibrate TRIMP — use your real max and
+resting HR. `AMAZFIT_MCP_OBSIDIAN_DIR` is optional (default `data/obsidian`).
 
-## Desenvolvimento
+Then, in Claude: *"how was my Saturday of week 1?"*, *"am I progressing on the squat?"*,
+*"how is my form?"* (CTL/ATL/TSB), *"am I ready to train hard today?"* (readiness),
+*"export this week's notes to Obsidian"*.
+
+## Development
 
 ```bash
-# gera a fixture sintética a partir do template
+# generate the synthetic fixture from the template
 .venv/bin/python tests/make_fixture.py
 
-# testes
+# tests
 .venv/bin/python -m pytest
 
-# inspecionar as tools interativamente (MCP Inspector, requer Node):
-AMAZFITOPS_XLSX="$PWD/tests/fixtures/sample.xlsx" PYTHONPATH=src \
-  npx @modelcontextprotocol/inspector .venv/bin/python -m amazfitops
+# inspect the tools interactively (MCP Inspector, requires Node):
+AMAZFIT_MCP_XLSX="$PWD/tests/fixtures/sample.xlsx" PYTHONPATH=src \
+  npx @modelcontextprotocol/inspector .venv/bin/python -m amazfit_mcp
 ```
 
-### Como o código está organizado
+### How the code is organized
 
-- `cellmap.py` — **único** lugar com posições de célula. A planilha usa posições fixas e quebra
-  fácil se a estrutura mudar; isolar aqui é a defesa.
-- `spreadsheet.py` — lê só os *inputs crus* e **recalcula** VTT e U.A. (o valor em cache das
-  fórmulas do Excel não é confiável em arquivo recém-editado).
-- `recovery.py` — lê o store de JSON do Apple Health (Health Auto Export) e normaliza por dia.
-- `analysis.py` — Fase 3: ACWR e o join carga × recuperação por data.
-- `server.py` — as 9 tools do FastMCP. `models.py` — dataclasses dos retornos.
+- `cellmap.py` — the **only** place with cell positions. The spreadsheet uses fixed positions
+  and breaks easily if the structure changes; isolating it here is the defense.
+- `spreadsheet.py` — reads only the *raw inputs* and **recomputes** VTT and A.U. (Excel's
+  cached formula values are unreliable in a freshly edited file).
+- `recovery.py` — reads the Apple Health JSON store (Health Auto Export) and normalizes per day.
+- `workouts.py` — Phase 4: watch workouts (running etc.) from the same store + Banister TRIMP.
+- `analysis.py` — Phase 3: ACWR and the load × recovery join by date.
+- `metrics.py` — Phase 4: CTL/ATL/TSB, baseline trends and the readiness score (pure functions).
+- `obsidian.py` — Phase 4: deterministic daily Markdown notes (YAML frontmatter for Dataview).
+- `zepp_cloud.py` — Phase 4: experimental Zepp cloud extractor (CLI, outside the server; writes
+  in the Health Auto Export format to reuse every reader).
+- `server.py` — the 15 FastMCP tools. `models.py` — return dataclasses.
 
-Dados pessoais (`data/*.xlsx`, `data/recovery/`) ficam fora do git; só a fixture sintética é versionada.
+Personal data (`data/*.xlsx`, `data/recovery/`) stays out of git; only the synthetic fixture
+is versioned.
 
-## Configurar o Amazfit (Apple Health) — Fase 0
+## Configure the Amazfit (Apple Health) — Phase 0
 
-Fluxo: `GTR 4 → app Zepp → Apple Health → app Health Auto Export → JSON no iCloud → o Mac lê`.
-Não há API oficial; este é o caminho robusto para iPhone (sem senha do Zepp, sem engenharia reversa).
-A extração fica **fora do MCP** — o app escreve os JSON, as tools só leem (desacoplado, estilo SRE).
+Flow: `GTR 4 → Zepp app → Apple Health → Health Auto Export app → JSON on iCloud → the Mac reads`.
+There is no official API; this is the robust path on iPhone (no Zepp password, no reverse
+engineering). Extraction stays **outside the MCP** — the app writes the JSON, the tools only
+read (decoupled, SRE-style).
 
-1. **Zepp → Apple Health:** no app Zepp (iPhone), Perfil → Apple Saúde, ligar **FC, FC de repouso,
-   Sono e HRV**. (HRV passou a sincronizar em 2025; se o toggle não aparecer, atualize o app.)
-2. **Health Auto Export:** instalar o app, criar uma automação **diária**, formato **JSON**, métricas
-   `resting_heart_rate`, `heart_rate_variability`, `respiratory_rate`, `sleep_analysis`, destino uma
-   pasta no **iCloud Drive** (ex.: `HealthAutoExport/`).
-3. **Apontar o MCP para a pasta** — re-registrar com `AMAZFITOPS_RECOVERY_DIR` na pasta do iCloud:
+1. **Zepp → Apple Health:** in the Zepp app (iPhone), Profile → Apple Health, enable **HR,
+   resting HR, Sleep and HRV**. (HRV started syncing in 2025; if the toggle is missing, update
+   the app.)
+2. **Health Auto Export:** install the app, create a **daily** automation, **JSON** format,
+   metrics `resting_heart_rate`, `heart_rate_variability`, `respiratory_rate`, `sleep_analysis`
+   **and Workouts** (so runs feed `get_workouts`/TRIMP), destination a folder on **iCloud
+   Drive** (e.g. `HealthAutoExport/`).
+3. **Point the MCP at the folder** — re-register with `AMAZFIT_MCP_RECOVERY_DIR` on the iCloud
+   folder:
    ```bash
-   claude mcp remove amazfitops -s local
-   claude mcp add amazfitops \
+   claude mcp remove amazfit-mcp -s local
+   claude mcp add amazfit-mcp \
      --env PYTHONPATH="$PWD/src" \
-     --env AMAZFITOPS_XLSX="$PWD/data/planilha.xlsx" \
-     --env AMAZFITOPS_RECOVERY_DIR="$HOME/Library/Mobile Documents/com~apple~CloudDocs/HealthAutoExport" \
-     -- "$PWD/.venv/bin/python" -m amazfitops
+     --env AMAZFIT_MCP_XLSX="$PWD/data/planilha.xlsx" \
+     --env AMAZFIT_MCP_RECOVERY_DIR="$HOME/Library/Mobile Documents/com~apple~CloudDocs/HealthAutoExport" \
+     -- "$PWD/.venv/bin/python" -m amazfit_mcp
    ```
-4. **Validar:** no Claude, peça `recovery_status` — deve mostrar o dado de ontem. Esse é o critério da Fase 0.
+4. **Validate:** in Claude, ask for `recovery_status` — it should show yesterday's data. That
+   is Phase 0's done criterion.
 
-> Sono assumido em horas (padrão do Health Auto Export — validar com o primeiro export real).
-> Estresse/PAI são proprietários do Zepp e podem não ir pro Apple Health; FC-repouso + sono + HRV
-> já cobrem o essencial de recuperação (e a planilha já tem estresse subjetivo).
+> Sleep assumed in hours (Health Auto Export's default — validate with the first real export).
+> Stress/PAI are Zepp-proprietary and may not reach Apple Health; resting HR + sleep + HRV
+> already cover the essentials of recovery (and the spreadsheet has subjective stress).
 
 ## Roadmap
 
-- **Fase 0 (sua parte) — ativar o Apple Health** (passos acima). É o único passo que falta pra entrar
-  dado real do relógio; o código que lê já está pronto e testado.
-- **Fase 3 — análise cruzada — implementada** (`get_training_load` com ACWR + `compare_load_recovery`).
-  Em cima das tools, o Claude interpreta: peça *"compare minha carga da semana com minha recuperação"*
-  ou *"meu ACWR está em zona de risco?"*. A versão subjetiva (U.A./VTT × prontidão) já funciona sem o relógio.
+- **Phase 0 (your part) — enable Apple Health** (steps above). The only step missing for real
+  watch data; the reading code is ready and tested.
+- **Phase 3 — cross analysis — shipped** (`get_training_load` with ACWR + `compare_load_recovery`).
+- **Phase 4 — running, form & Obsidian — shipped** (workouts + TRIMP, CTL/ATL/TSB, readiness,
+  trends, Obsidian export, Zepp cloud extractor). On top of the tools, Claude interprets: ask
+  *"compare this week's load with my recovery"* or *"is my ACWR in a risk zone?"*. The
+  subjective version (A.U./VTT × readiness) already works without the watch.
+
+## Contributing
+
+This project is **open source under the [MIT license](LICENSE)** — use it, fork it, break it,
+improve it. Contributions of any size are welcome:
+
+- 🐛 **Found a bug?** [Open an issue](../../issues) with the JSON/spreadsheet snippet that
+  triggered it (strip your personal data).
+- 💡 **Ideas that would help most right now:** other watch/source extractors that write the
+  Health Auto Export format into the store (Garmin, Fitbit, Oura — zero reader changes needed),
+  stress/PAI support in `zepp_cloud.py`, adapters for other spreadsheet templates, more sports
+  in `workouts.py`.
+- 🔧 **Sending a PR:** keep the test suite green (`.venv/bin/python -m pytest`), match the
+  code style (pure functions, defensive parsing, English docstrings), and add a test for
+  what you change. Architecture notes live in [CONTEXT.md](CONTEXT.md).
+- ⭐ If this helped you, a star helps others find it.
+
+Everything here was built pairing with Claude Code — issues asking "how was X built?" are
+welcome too.

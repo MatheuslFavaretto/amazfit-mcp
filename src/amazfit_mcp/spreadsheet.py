@@ -1,8 +1,11 @@
-"""Leitura e parsing da planilha (read-only) + cálculo dos derivados.
+"""Spreadsheet reading and parsing (read-only) + derived-value computation.
 
-Estratégia: ler apenas os *inputs crus* (reps, peso, veloc, PSE, tempo, bem-estar)
-e calcular VTT e Carga U.A. em Python. Não confiamos no valor em cache das fórmulas
-do Excel — em arquivo recém-editado ele vem ``None`` ou ``'#DIV/0!'``.
+Strategy: read only the *raw inputs* (reps, weight, speed, RPE, time, wellness)
+and compute VTT and A.U. load in Python. We do not trust Excel's cached formula
+values — in a freshly edited file they come back as ``None`` or ``'#DIV/0!'``.
+
+The wellness dict keys (``sono``/``estresse``/``fadiga``/``dor``) mirror the
+spreadsheet's column labels on purpose — they are domain vocabulary.
 """
 
 from __future__ import annotations
@@ -18,10 +21,10 @@ from .models import Exercise, Session, SetEntry, Week
 
 
 # --------------------------------------------------------------------------- #
-# helpers de limpeza de célula
+# cell-cleaning helpers
 # --------------------------------------------------------------------------- #
 def _clean(value):
-    """None / string vazia / erro de fórmula ('#DIV/0!') -> None."""
+    """None / empty string / formula error ('#DIV/0!') -> None."""
     if value is None:
         return None
     if isinstance(value, str):
@@ -34,7 +37,7 @@ def _clean(value):
 
 def _num(value) -> float | None:
     v = _clean(value)
-    if isinstance(v, bool):  # bool é subclasse de int; não queremos
+    if isinstance(v, bool):  # bool is an int subclass; we don't want it
         return None
     if isinstance(v, (int, float)):
         return float(v)
@@ -47,7 +50,7 @@ def _date(value) -> str | None:
         return v.date().isoformat()
     if isinstance(v, dt.date):
         return v.isoformat()
-    if isinstance(v, str):  # caso a DATA tenha sido digitada como texto
+    if isinstance(v, str):  # in case the DATE was typed as text
         for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d/%m/%y"):
             try:
                 return dt.datetime.strptime(v, fmt).date().isoformat()
@@ -60,7 +63,7 @@ def _date(value) -> str | None:
 # parsing
 # --------------------------------------------------------------------------- #
 def _materialize(ws) -> dict:
-    """Lê a aba (modo read-only) para um dict {(linha, coluna): valor}."""
+    """Read the sheet (read-only mode) into a dict {(row, column): value}."""
     grid: dict[tuple[int, int], object] = {}
     for row in ws.iter_rows(
         min_row=1, max_row=cm.MAX_ROW, min_col=1, max_col=cm.MAX_COL
@@ -136,7 +139,7 @@ def parse_week(grid: dict, week_number: int, sheet: str) -> Week:
 
 
 def load_weeks(path: str | Path | None = None) -> list[Week]:
-    """Abre a planilha e devolve todas as semanas (abas ``SEM N``), ordenadas."""
+    """Open the spreadsheet and return every week (``SEM N`` sheets), sorted."""
     wb = load_workbook(path or config.xlsx_path(), data_only=True, read_only=True)
     try:
         weeks: list[Week] = []
@@ -156,12 +159,12 @@ def find_week(weeks: list[Week], week_number: int) -> Week:
     for w in weeks:
         if w.week == week_number:
             return w
-    disponiveis = ", ".join(str(w.week) for w in weeks) or "(nenhuma)"
-    raise ValueError(f"semana {week_number} não encontrada. Disponíveis: {disponiveis}")
+    available = ", ".join(str(w.week) for w in weeks) or "(none)"
+    raise ValueError(f"week {week_number} not found. Available: {available}")
 
 
 # --------------------------------------------------------------------------- #
-# resumos (funções puras sobre os dataclasses — testáveis sem MCP)
+# summaries (pure functions over the dataclasses — testable without MCP)
 # --------------------------------------------------------------------------- #
 def week_summary(w: Week) -> dict:
     days = []
